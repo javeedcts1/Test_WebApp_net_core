@@ -130,7 +130,7 @@ stages:
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
 
 - stage: preProd_Deployment
-  #condition: eq(variables['Build.SourceBranch'], 'refs/heads/preprod')
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/preprod')
   jobs:
   - deployment: preProd_Deploy
     displayName: deploy web app in preprod-slot
@@ -180,7 +180,7 @@ stages:
         SlotName: 'javedwebappprod-prepod'
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
 - stage: Prod_Deployment
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
   jobs:
   - deployment: Prod_Deploy
     displayName: deploy web app in prod
