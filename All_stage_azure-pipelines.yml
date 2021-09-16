@@ -18,7 +18,7 @@ variables:
   buildConfiguration: 'Release'
 
 
-
+###test
 
 stages: 
 - stage: pipelinetest
