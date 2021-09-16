@@ -39,7 +39,7 @@ stages:
           Write-Host $(Build.SourceBranch)
 
 - stage: stage
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/Stage'))
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/Stage')
   jobs:
   - job: Build
     steps:
