@@ -10,7 +10,6 @@ trigger:
 - preprod
 
 pool:
-  name   : 'Default'
   vmImage: 'windows-2019'
 
 variables:
