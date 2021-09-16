@@ -5,6 +5,9 @@
 
 trigger:
 - main
+- dev
+- stage
+- preprod
 
 pool:
   vmImage: 'windows-latest'
@@ -15,7 +18,8 @@ variables:
   buildConfiguration: 'Release'
 
 stages: 
-- stage: Build
+- stage: stage
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/Stage'))
   jobs:
   - job: Build
     steps:
@@ -41,8 +45,51 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'drop'
         publishLocation: 'Container'
-- stage: Dev_stage
+  - job: Stage_job_deploy
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'specific'
+        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
+        definition: '9'
+        buildVersionToDownload: 'latest'
+        allowPartiallySucceededBuilds: true
+        allowFailedBuilds: true
+        targetPath: '$(Pipeline.Workspace)'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'spnq1'
+        appType: 'webApp'
+        WebAppName: 'javedwebappstage'
+        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+- stage: Dev
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/Dev'))
   jobs:
+  - job: Build
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
   - job: Dev_job_deploy
     steps:
     - task: DownloadPipelineArtifact@2
@@ -59,14 +106,39 @@ stages:
         ConnectionType: 'AzureRM'
         azureSubscription: 'spnq1'
         appType: 'webApp'
-        WebAppName: 'SCENARIO-Q1-FastCarz-Webapp-dev'
+        WebAppName: 'javedwebappdev'
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
-- stage: Prod_and_QA_stage
-  condition: and(succeeded('Dev_stage'), ne(variables['Build.Reason'], 'PullRequest'))
+
+- stage: Prod_Deployment
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
-  - deployment: DeployprodandQA
-    displayName: deploy prod and QA Web App
+  - deployment: Prod_Deploy
+    displayName: deploy web app in prod
     environment: 'Prod_ENV'
+  - job: Build
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
   - job: prod_job_deploy
     steps:
     - task: DownloadPipelineArtifact@2
@@ -83,24 +155,7 @@ stages:
         ConnectionType: 'AzureRM'
         azureSubscription: 'spnq1'
         appType: 'webApp'
-        WebAppName: 'SCENARIO-Q1-FastCarz-Webapp-pord'
+        WebAppName: 'javedwebappprod'
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
-  - job: QA_job_deploy
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'specific'
-        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
-        definition: '9'
-        buildVersionToDownload: 'latest'
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        targetPath: '$(Pipeline.Workspace)'
-    - task: AzureRmWebAppDeployment@4
-      inputs:
-        ConnectionType: 'AzureRM'
-        azureSubscription: 'spnq1'
-        appType: 'webApp'
-        WebAppName: 'SCENARIO-Q1-FastCarz-Webapp-qa'
-        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+
 
