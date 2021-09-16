@@ -46,6 +46,7 @@ stages:
         ArtifactName: 'drop'
         publishLocation: 'Container'
   - job: Stage_job_deploy
+    dependsOn: Build
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -58,7 +59,6 @@ stages:
         targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
-        ConnectionType: 'AzureRM'
         azureSubscription: 'spnq1'
         appType: 'webApp'
         WebAppName: 'javedwebappstage'
@@ -91,6 +91,7 @@ stages:
         ArtifactName: 'drop'
         publishLocation: 'Container'
   - job: Dev_job_deploy
+    dependsOn: Build
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -103,7 +104,6 @@ stages:
         targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
-        ConnectionType: 'AzureRM'
         azureSubscription: 'spnq1'
         appType: 'webApp'
         WebAppName: 'javedwebappdev'
@@ -140,6 +140,7 @@ stages:
         ArtifactName: 'drop'
         publishLocation: 'Container'
   - job: prod_job_deploy
+    dependsOn: Build
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
@@ -152,7 +153,6 @@ stages:
         targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
-        ConnectionType: 'AzureRM'
         azureSubscription: 'spnq1'
         appType: 'webApp'
         WebAppName: 'javedwebappprod'
