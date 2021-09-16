@@ -23,7 +23,7 @@ variables:
 stages: 
 - stage: pipelinetest
   jobs:
-  - job: Build
+  - job: test script
     steps:
     - task: PowerShell@2
       inputs:
