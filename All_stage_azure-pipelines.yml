@@ -30,6 +30,11 @@ stages:
         targetType: 'inline'
         script: |
           # Write your PowerShell commands here.
-          
+          Write-Host "Running the script hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          Write-output "Running the script hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          Write-Host $(Build.SourceBranch)
+          Write-Host $(Build.SourceBranch)
+          Write-Host $(Build.SourceBranch)
+          Write-Host $(Build.SourceBranch)
           Write-Host $(Build.SourceBranch)
 
