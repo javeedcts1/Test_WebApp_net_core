@@ -109,11 +109,11 @@ stages:
         WebAppName: 'javedwebappdev'
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
 
-- stage: Prod_Deployment
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+- stage: preProd_Deployment
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/preprod'))
   jobs:
-  - deployment: Prod_Deploy
-    displayName: deploy web app in prod
+  - deployment: preProd_Deploy
+    displayName: deploy web app in preprod-slot
     environment: 'Prod_ENV'
   - job: Build
     steps:
@@ -139,7 +139,7 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'drop'
         publishLocation: 'Container'
-  - job: prod_job_deploy
+  - job: preprod_webslot_deploy
     dependsOn: Build
     steps:
     - task: DownloadPipelineArtifact@2
