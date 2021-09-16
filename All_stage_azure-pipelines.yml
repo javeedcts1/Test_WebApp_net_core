@@ -203,15 +203,6 @@ stages:
       inputs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
-    
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-  - job: prod_job_deploy
-    dependsOn: Build
-    steps:
     - task: PowerShell@2
       inputs:
         targetType: 'inline'
@@ -221,17 +212,40 @@ stages:
           Get-ChildItem $(build.artifactStagingDirectory) -Recurse
           write-output '##############################################################################'
           write-output '##############################################################################'
-#    - task: ArchiveFiles@2
-#      displayName: 'Archive Files'
-#      inputs:
-#        rootFolderOrFile: '$(Agent.TempDirectory)\WebAppContent'
-#        includeRootFolder: false
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
         WebAppName: 'javedwebappprod'
         packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
-
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+#  - job: prod_job_deploy
+#    dependsOn: Build
+#    steps:
+#    - task: PowerShell@2
+#      inputs:
+#        targetType: 'inline'
+#        script: |
+#          Get-ChildItem $(Agent.TempDirectory) -Recurse
+#          write-output '##############################################################################'
+#          Get-ChildItem $(build.artifactStagingDirectory) -Recurse
+#          write-output '##############################################################################'
+#          write-output '##############################################################################'
+#    - task: ArchiveFiles@2
+##      displayName: 'Archive Files'
+##      inputs:
+##        rootFolderOrFile: '$(Agent.TempDirectory)\WebAppContent'
+##        includeRootFolder: false
+#    - task: AzureRmWebAppDeployment@4
+#      inputs:
+#        azureSubscription: 'azspn'
+#        appType: 'webApp'
+#        WebAppName: 'javedwebappprod'
+#        packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
+#
 
 
