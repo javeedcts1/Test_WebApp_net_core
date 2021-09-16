@@ -94,9 +94,6 @@ stages:
 - stage: preProd_Deployment
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/preprod')
   jobs:
-  - deployment: preProd_Deploy
-    displayName: deploy web app in preprod-slot
-    environment: 'Prod_ENV'
   - job: Build
     steps:
     - task: NuGetToolInstaller@1
