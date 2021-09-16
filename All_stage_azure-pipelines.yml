@@ -17,7 +17,22 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+
+
+
 stages: 
+- stage: pipelinetest
+  jobs:
+  - job: Build
+    steps:
+    - task: CmdLine@2
+      inputs:
+        script: |
+          echo Write your commands here
+          
+          echo $(Build.SourceBranch)
+
+
 - stage: stage
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/Stage'))
   jobs:
