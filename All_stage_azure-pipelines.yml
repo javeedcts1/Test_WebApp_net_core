@@ -60,7 +60,7 @@ stages:
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
-        WebAppName: 'javedwebappprod'
+        WebAppName: 'javedwebappstage'
         packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
 
 ####################################### For Dev Deployment
@@ -87,7 +87,7 @@ stages:
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
-        WebAppName: 'javedwebappprod'
+        WebAppName: 'javedwebappdev'
         packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
 ######################################################Preprod Deployment
 
