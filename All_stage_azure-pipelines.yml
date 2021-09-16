@@ -25,12 +25,13 @@ stages:
   jobs:
   - job: Build
     steps:
-    - task: CmdLine@2
+    - task: PowerShell@2
       inputs:
+        targetType: 'inline'
         script: |
-          echo Write your commands here
+          # Write your PowerShell commands here.
           
-          echo $(Build.SourceBranch)
+          Write-Host $(Build.SourceBranch)
 
 
 - stage: stage
