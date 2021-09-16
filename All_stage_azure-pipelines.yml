@@ -154,6 +154,56 @@ stages:
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'spnq1'
+        WebAppName: javedwebappprod
+        deployToSlotOrASE: true
+        ResourceGroupName: 'AZ_App_service_prod'
+        SlotName: 'javedwebappprod-prepod'
+        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+- stage: Prod_Deployment
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: Prod_Deploy
+    displayName: deploy web app in prod
+    environment: 'Prod_ENV'
+  - job: Build
+    steps:
+    - task: NuGetToolInstaller@1
+
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
+
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+  - job: prod_job_deploy
+    dependsOn: Build
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'specific'
+        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
+        definition: '9'
+        buildVersionToDownload: 'latest'
+        allowPartiallySucceededBuilds: true
+        allowFailedBuilds: true
+        targetPath: '$(Pipeline.Workspace)'
+    - task: AzureRmWebAppDeployment@4
+      inputs:
+        azureSubscription: 'spnq1'
         appType: 'webApp'
         WebAppName: 'javedwebappprod'
         packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
