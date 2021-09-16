@@ -212,21 +212,17 @@ stages:
   - job: prod_job_deploy
     dependsOn: Build
     steps:
-    - task: DownloadPipelineArtifact@2
+    - task: ArchiveFiles@2
+      displayName: 'Archive Files'
       inputs:
-        buildType: 'specific'
-        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
-        definition: '9'
-        buildVersionToDownload: 'latest'
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        targetPath: '$(Pipeline.Workspace)'
+        rootFolderOrFile: '$(Agent.TempDirectory)\WebAppContent'
+        includeRootFolder: false
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
         WebAppName: 'javedwebappprod'
-        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+        packageForLinux: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 
 
 
