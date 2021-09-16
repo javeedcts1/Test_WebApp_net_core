@@ -21,6 +21,7 @@ variables:
 ###test###
 
 stages: 
+############################################running dummy stage pipeline
 - stage: pipelinetest
   jobs:
   - job: test_script
@@ -32,23 +33,17 @@ stages:
           # Write your PowerShell commands here.
           Write-Host "Running the script hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
           Write-output "Running the script hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-          Write-Host $(Build.SourceBranch)
-          Write-Host $(Build.SourceBranch)
-          Write-Host $(Build.SourceBranch)
-          Write-Host $(Build.SourceBranch)
-          Write-Host $(Build.SourceBranch)
 
-- stage: stage
+##########################################################Stage Deployment
+- stage: stage_Deployment
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/Stage')
   jobs:
   - job: Build
     steps:
     - task: NuGetToolInstaller@1
-
     - task: NuGetCommand@2
       inputs:
         restoreSolution: '$(solution)'
-
     - task: VSBuild@1
       inputs:
         solution: '$(solution)'
@@ -59,41 +54,23 @@ stages:
       inputs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
-    
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-  - job: Stage_job_deploy
-    dependsOn: Build
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'specific'
-        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
-        definition: '9'
-        buildVersionToDownload: 'latest'
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
-        WebAppName: 'javedwebappstage'
-        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+        WebAppName: 'javedwebappprod'
+        packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
+
+####################################### For Dev Deployment
 - stage: Dev
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/Dev'))
   jobs:
   - job: Build
     steps:
     - task: NuGetToolInstaller@1
-
     - task: NuGetCommand@2
       inputs:
         restoreSolution: '$(solution)'
-
     - task: VSBuild@1
       inputs:
         solution: '$(solution)'
@@ -104,30 +81,13 @@ stages:
       inputs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
-    
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-  - job: Dev_job_deploy
-    dependsOn: Build
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'specific'
-        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
-        definition: '9'
-        buildVersionToDownload: 'latest'
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
-        WebAppName: 'javedwebappdev'
-        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+        WebAppName: 'javedwebappprod'
+        packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
+######################################################Preprod Deployment
 
 - stage: preProd_Deployment
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/preprod')
@@ -142,7 +102,6 @@ stages:
     - task: NuGetCommand@2
       inputs:
         restoreSolution: '$(solution)'
-
     - task: VSBuild@1
       inputs:
         solution: '$(solution)'
@@ -153,32 +112,17 @@ stages:
       inputs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
-    
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-  - job: preprod_webslot_deploy
-    dependsOn: Build
-    steps:
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'specific'
-        project: '9fc0f583-f07e-4c61-bbfb-2f0bd0a1b279'
-        definition: '9'
-        buildVersionToDownload: 'latest'
-        allowPartiallySucceededBuilds: true
-        allowFailedBuilds: true
-        targetPath: '$(Pipeline.Workspace)'
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
-        WebAppName: javedwebappprod
+        appType: 'webApp'
+        WebAppName: 'javedwebappprod'
         deployToSlotOrASE: true
         ResourceGroupName: 'AZ_App_service_prod'
         SlotName: 'javedwebappprod-prepod'
-        packageForLinux: '$(Pipeline.Workspace)/drop/WebApp.zip'
+        packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
+
+###########################################################Prod Deployment
 - stage: Prod_Deployment
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
   jobs:
@@ -203,49 +147,13 @@ stages:
       inputs:
         platform: '$(buildPlatform)'
         configuration: '$(buildConfiguration)'
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Get-ChildItem $(Agent.TempDirectory) -Recurse
-          write-output '##############################################################################'
-          Get-ChildItem $(build.artifactStagingDirectory) -Recurse
-          write-output '##############################################################################'
-          write-output '##############################################################################'
     - task: AzureRmWebAppDeployment@4
       inputs:
         azureSubscription: 'azspn'
         appType: 'webApp'
         WebAppName: 'javedwebappprod'
         packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
-#  - job: prod_job_deploy
-#    dependsOn: Build
-#    steps:
-#    - task: PowerShell@2
-#      inputs:
-#        targetType: 'inline'
-#        script: |
-#          Get-ChildItem $(Agent.TempDirectory) -Recurse
-#          write-output '##############################################################################'
-#          Get-ChildItem $(build.artifactStagingDirectory) -Recurse
-#          write-output '##############################################################################'
-#          write-output '##############################################################################'
-#    - task: ArchiveFiles@2
-##      displayName: 'Archive Files'
-##      inputs:
-##        rootFolderOrFile: '$(Agent.TempDirectory)\WebAppContent'
-##        includeRootFolder: false
-#    - task: AzureRmWebAppDeployment@4
-#      inputs:
-#        azureSubscription: 'azspn'
-#        appType: 'webApp'
-#        WebAppName: 'javedwebappprod'
-#        packageForLinux: '$(build.artifactStagingDirectory)\WebApp.zip'
-#
+
+
 
 
